@@ -28,7 +28,7 @@ using UnityEngine;
 
 
 // This is the major & minor version with an asterisk (*) appended to auto increment numbers.
-[assembly: AssemblyVersion(COM3D2.TimeDependentPhysics.PluginInfo.PLUGIN_VERSION + ".*")]
+[assembly: AssemblyVersion(COM3D2.TimeDependentPhysics.PluginInfo.PLUGIN_VERSION)]
 [assembly: AssemblyFileVersion(COM3D2.TimeDependentPhysics.PluginInfo.PLUGIN_VERSION)]
 
 // These two lines tell your plugin to not give a flying fuck about accessing private variables/classes whatever.
