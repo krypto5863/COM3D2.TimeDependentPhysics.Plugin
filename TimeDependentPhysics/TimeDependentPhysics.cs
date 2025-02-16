@@ -46,7 +46,7 @@ namespace COM3D2.TimeDependentPhysics
 		// The name of this plugin.
 		public const string PLUGIN_NAME = "TimeDependentPhysics";
 		// The version of this plugin.
-		public const string PLUGIN_VERSION = "0.5";
+		public const string PLUGIN_VERSION = "0.5.1";
 	}
 }
 
@@ -107,9 +107,6 @@ namespace COM3D2.TimeDependentPhysics
 			
 		}
 
-		private void Update()
-		{ }
-
 		[HarmonyTranspiler, HarmonyPatch(typeof(jiggleBone), nameof(jiggleBone.LateUpdateSelf))]
 		static IEnumerable<CodeInstruction> LateUpdateSelf_Transpiler(IEnumerable<CodeInstruction> instrs)
 		{
@@ -118,7 +115,7 @@ namespace COM3D2.TimeDependentPhysics
 
 			var field_BlendValueON = AccessTools.DeclaredField(typeof(jiggleBone), nameof(jiggleBone.BlendValueON));
 			var smethod_GetTimeFactor = AccessTools.Method(typeof(TimeDependentPhysics), nameof(TimeDependentPhysics.GetTimeFactor));
-			var local_num5 = 21; // Not used until after the if block, so use this for now
+			var local_num5 = 17; // Not used until after the if block, so use this for now
 
 			var transpileHead = new CodeMatcher(instrs);
 
@@ -163,11 +160,20 @@ namespace COM3D2.TimeDependentPhysics
 			FieldInfo[] floatFields = { field_Vector3_x, field_Vector3_y, field_Vector3_z };
 			foreach (var floatField in floatFields)
 			{
+				CodeMatch[] match_FieldAddressLoad =
+				{
+					// Vector.? += ?
+					new(OpCodes.Ldflda, floatField),
+				};
+				transpileHead.MatchForward(useEnd: false, match_FieldAddressLoad);
+				if (transpileHead.ReportFailure(method_LateUpdateSelf, Logger.LogError)) throw transpileException;
+
+				//Fix for 2.5 may make this match error prone due to the way Stind_R4 works. Or... it may not. The previous match attempts to remedy this.
 				CodeMatch[] match_AddToField =
 				{
 					// Vector.? += ?
 					new(OpCodes.Add),
-					new(OpCodes.Stfld, floatField),
+					new(OpCodes.Stind_R4),
 				};
 				transpileHead.MatchForward(useEnd: false, match_AddToField);
 				if (transpileHead.ReportFailure(method_LateUpdateSelf, Logger.LogError)) throw transpileException;
